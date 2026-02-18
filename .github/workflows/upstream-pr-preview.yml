@@ -46,7 +46,7 @@ jobs:
           elif [ -n "$INPUT_PR" ]; then
             PRS="[$INPUT_PR]"
           else
-            PRS=$(gh api repos/$UPSTREAM_REPO/pulls --paginate --jq '[.[] | select(.state=="open" and .draft==false) | .number]')
+            PRS=$(gh api "repos/${UPSTREAM_REPO}/pulls" --paginate --jq '[.[] | select(.state=="open" and .draft==false) | .number]')
           fi
           if [ -z "$PRS" ]; then
             PRS="[]"
@@ -85,7 +85,7 @@ jobs:
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
-            data=$(gh api repos/$UPSTREAM_REPO/pulls/$pr)
+            data=$(gh api "repos/${UPSTREAM_REPO}/pulls/${pr}")
             state=$(echo "$data" | jq -r '.state')
             draft=$(echo "$data" | jq -r '.draft')
             if [ "$state" != "open" ] || [ "$draft" = "true" ]; then
@@ -95,6 +95,11 @@ jobs:
 
             sha=$(echo "$data" | jq -r '.head.sha')
             head_repo=$(echo "$data" | jq -r '.head.repo.full_name')
+
+            if ! printf '%s' "$head_repo" | grep -Eq '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$'; then
+              echo "Unexpected head repo format for PR #$pr, skipping (源仓库格式异常，已跳过)"
+              continue
+            fi
 
             archive="pr-${pr}.zip"
             gh api "repos/${head_repo}/zipball/${sha}" > "$archive"
@@ -168,10 +173,10 @@ ${MARKER}
 > 若PR继续提交，新预览将自动覆盖并更新本评论。
 EOF
 )
-            existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
+            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
-              gh api repos/${UPSTREAM_REPO}/issues/comments/${existing} -X PATCH -f body="$body"
+              gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
             else
-              gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments -X POST -f body="$body"
+              gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" -X POST -f body="$body"
             fi
           done < /tmp/comment_info.jsonl

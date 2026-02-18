@@ -21,7 +21,7 @@
 5. **可选加速触发（无需改动上游）**
    - 可在任意机器/Actions 监听 GitHub Events 接口，一旦捕获上游 PR `opened/synchronize/reopened` 事件，通过 `repository_dispatch` 触发本 Workflow。**此调用需要对本仓库拥有 `contents: write` 的令牌**（可单独创建 `DISPATCH_PAT`，或在本仓库的 Actions 中直接使用 `${{ secrets.GITHUB_TOKEN }}`）：  
    ```
-   gh api repos/<你的用户名>/win12-pr-preview/dispatches \
+   gh api repos/{owner}/win12-pr-preview/dispatches \
      -f event_type=upstream-pr \
      -f client_payload='{"number":123}' \
      -H "Authorization: token $DISPATCH_PAT"
@@ -82,7 +82,7 @@ jobs:
           elif [ -n "$INPUT_PR" ]; then
             PRS="[$INPUT_PR]"
           else
-            PRS=$(gh api repos/$UPSTREAM_REPO/pulls --paginate --jq '[.[] | select(.state=="open" and .draft==false) | .number]')
+            PRS=$(gh api "repos/${UPSTREAM_REPO}/pulls" --paginate --jq '[.[] | select(.state=="open" and .draft==false) | .number]')
           fi
           if [ -z "$PRS" ]; then
             PRS="[]"
@@ -121,7 +121,7 @@ jobs:
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
-            data=$(gh api repos/$UPSTREAM_REPO/pulls/$pr)
+            data=$(gh api "repos/${UPSTREAM_REPO}/pulls/${pr}")
             state=$(echo "$data" | jq -r '.state')
             draft=$(echo "$data" | jq -r '.draft')
             if [ "$state" != "open" ] || [ "$draft" = "true" ]; then
@@ -131,6 +131,11 @@ jobs:
 
             sha=$(echo "$data" | jq -r '.head.sha')
             head_repo=$(echo "$data" | jq -r '.head.repo.full_name')
+
+            if ! printf '%s' "$head_repo" | grep -Eq '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$'; then
+              echo "Unexpected head repo format for PR #$pr, skipping (源仓库格式异常，已跳过)"
+              continue
+            fi
 
             archive="pr-${pr}.zip"
             gh api "repos/${head_repo}/zipball/${sha}" > "$archive"
@@ -205,11 +210,11 @@ ${MARKER}
 EOF
 )
 
-            existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
+            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
-              gh api repos/${UPSTREAM_REPO}/issues/comments/${existing} -X PATCH -f body="$body"
+              gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
             else
-              gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments -X POST -f body="$body"
+              gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" -X POST -f body="$body"
             fi
           done < /tmp/comment_info.jsonl
 ```
@@ -223,7 +228,7 @@ EOF
 6. 若要即时响应上游 PR 事件，在外部监听后调用 `repository_dispatch`（示例命令见上）。
 7. Workflow 会：过滤草稿/关闭PR → 拉取PR源分支 → 构建 `pr-{PR号}` 目录 → 本地校验 `desktop.html` → 推送至 `gh-pages`。
 8. 部署成功后，小号会在对应上游 PR 发布/更新单条评论，包含预览直链、SHA、UTC+8 时间、项目地址与许可声明。
-9. Pages 访问规则：`https://<你的GitHub用户名>.github.io/win12-pr-preview/pr-<PR号>/desktop.html`。
+9. Pages 访问规则：`https://{owner}.github.io/win12-pr-preview/pr-<PR号>/desktop.html`。
 10. PR 合并或关闭后，定时/手动运行会重建 `gh-pages`，未列出的目录被移除，实现自动清理。
 
 ## 4）常见问题排查
