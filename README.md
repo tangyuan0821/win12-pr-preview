@@ -19,13 +19,13 @@
    - Source 选择 **Deploy from a branch**
    - Branch 选择 `gh-pages`（Workflow 会自动创建/更新）
 5. **可选加速触发（无需改动上游）**
-   - 可在任意机器/Actions 使用大号PAT监听 GitHub Events 接口，一旦捕获上游 PR `opened/synchronize/reopened` 事件，通过 `repository_dispatch` 触发本 Workflow：  
-     ```
-     gh api repos/<你的用户名>/win12-pr-preview/dispatches \
-       -f event_type=upstream-pr \
-       -f client_payload='{"number":123}' \
-       -H "Authorization: token $UPSTREAM_READ_PAT"
-     ```
+   - 可在任意机器/Actions 监听 GitHub Events 接口，一旦捕获上游 PR `opened/synchronize/reopened` 事件，通过 `repository_dispatch` 触发本 Workflow。**此调用需要对本仓库拥有 `contents: write` 的令牌**（可单独创建 `DISPATCH_PAT`，或在本仓库的 Actions 中直接使用 `${{ secrets.GITHUB_TOKEN }}`）：  
+   ```
+   gh api repos/<你的用户名>/win12-pr-preview/dispatches \
+     -f event_type=upstream-pr \
+     -f client_payload='{"number":123}' \
+     -H "Authorization: token $DISPATCH_PAT"
+   ```
    - 若不接入外部监听，Workflow 也会每 15 分钟轮询自动处理最新的打开状态非草稿 PR。
 
 ## 2）可直接复制的 GitHub Actions Workflow（中文注释）
@@ -148,7 +148,7 @@ jobs:
             trap "kill $SERVER_PID 2>/dev/null" EXIT
             sleep 2
             while read -r pr sha; do
-              if curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"; then
+              if curl -fsS "http://localhost:8000/pr-${pr}/desktop.html" >/dev/null; then
                 printf '{"number":%s,"sha":"%s"}\n' "$pr" "$sha" >> /tmp/comment_info.jsonl
               else
                 echo "desktop.html validation failed for PR #$pr, skipping comment and deployment.（desktop.html 校验失败，已跳过）" >&2
@@ -178,6 +178,7 @@ jobs:
           PREVIEW_ROOT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: |
           set -euo pipefail
+          MARKER="🤖 PR预览自动化机器人"
           if [ ! -s /tmp/comment_info.jsonl ]; then
             echo "No successful builds; skip commenting."
             exit 0
@@ -190,7 +191,7 @@ jobs:
             deployed_at=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S %Z")
 
             body=$(cat <<EOF
-🤖 PR预览自动化机器人
+${MARKER}
 
 - 预览链接：${url}
 - 提交哈希：${sha}
@@ -201,7 +202,7 @@ jobs:
 EOF
 )
 
-            existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"PR预览自动化机器人\"))))[0].id" || true)
+            existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api repos/${UPSTREAM_REPO}/issues/comments/${existing} -X PATCH -f body="$body"
             else

@@ -114,7 +114,7 @@ jobs:
             trap "kill $SERVER_PID 2>/dev/null" EXIT
             sleep 2
             while read -r pr sha; do
-              if curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"; then
+              if curl -fsS "http://localhost:8000/pr-${pr}/desktop.html" >/dev/null; then
                 printf '{"number":%s,"sha":"%s"}\n' "$pr" "$sha" >> /tmp/comment_info.jsonl
               else
                 echo "desktop.html validation failed for PR #$pr, skipping comment and deployment.（desktop.html 校验失败，已跳过）" >&2
@@ -144,6 +144,7 @@ jobs:
           PREVIEW_ROOT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: |
           set -euo pipefail
+          MARKER="🤖 PR预览自动化机器人"
           if [ ! -s /tmp/comment_info.jsonl ]; then
             echo "No successful builds; skip commenting."
             exit 0
@@ -156,7 +157,7 @@ jobs:
             deployed_at=$(TZ=Asia/Shanghai date "+%Y-%m-%d %H:%M:%S %Z")
 
             body=$(cat <<EOF
-🤖 PR预览自动化机器人
+${MARKER}
 
 - 预览链接：${url}
 - 提交哈希：${sha}
@@ -166,7 +167,7 @@ jobs:
 > 若PR继续提交，新预览将自动覆盖并更新本评论。
 EOF
 )
-            existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"PR预览自动化机器人\"))))[0].id" || true)
+            existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api repos/${UPSTREAM_REPO}/issues/comments/${existing} -X PATCH -f body="$body"
             else
