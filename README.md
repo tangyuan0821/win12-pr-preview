@@ -121,6 +121,10 @@ jobs:
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
+            if ! [[ "$pr" =~ ^[0-9]+$ ]]; then
+              echo "Invalid PR number ${pr}, skipping (PR编号格式异常，已跳过)"
+              continue
+            fi
             data=$(gh api "repos/${UPSTREAM_REPO}/pulls/${pr}")
             state=$(echo "$data" | jq -r '.state')
             draft=$(echo "$data" | jq -r '.draft')
@@ -238,7 +242,7 @@ EOF
 5. 首次可通过 **Actions → upstream-pr-preview → Run workflow** 手动触发；如需单个PR，输入 PR 号。
 6. 若要即时响应上游 PR 事件，在外部监听后调用 `repository_dispatch`（示例命令见上）。
 7. Workflow 会：过滤草稿/关闭PR → 拉取PR源分支 → 构建 `pr-{PR号}` 目录 → 本地校验 `desktop.html` → 推送至 `gh-pages`。
-8. 部署成功后，小号会在对应上游 PR 发布/更新单条评论，包含预览直链、SHA、UTC+8 时间、项目地址与许可声明。
+8. 部署成功后，小号会在对应上游 PR 发布/更新单条评论，包含预览直链、SHA、时间（默认 `PREVIEW_TIMEZONE=Asia/Shanghai` 即 UTC+8，可按需覆盖）、项目地址与许可声明。
 9. Pages 访问规则：`https://{owner}.github.io/win12-pr-preview/pr-<PR号>/desktop.html`。
 10. PR 合并或关闭后，定时/手动运行会重建 `gh-pages`，未列出的目录被移除，实现自动清理。
 

@@ -85,6 +85,10 @@ jobs:
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
+            if ! [[ "$pr" =~ ^[0-9]+$ ]]; then
+              echo "Invalid PR number ${pr}, skipping (PR编号格式异常，已跳过)"
+              continue
+            fi
             data=$(gh api "repos/${UPSTREAM_REPO}/pulls/${pr}")
             state=$(echo "$data" | jq -r '.state')
             draft=$(echo "$data" | jq -r '.draft')
