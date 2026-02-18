@@ -1,19 +1,12 @@
 name: upstream-pr-preview
 
 on:
-  # 手动触发，便于指定单个PR验证
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: '仅处理指定的上游PR编号（可选）'
-        required: false
-  # 供外部调用 repository_dispatch（例如自建监听服务转发上游PR事件）
+  # 供外部调用 repository_dispatch（监听上游PR opened/synchronize/reopened 后转发）
   repository_dispatch:
     types:
-      - upstream-pr
-  # 定时轮询，保证无需改动上游仓库也能自动发现最新PR
-  schedule:
-    - cron: "*/15 * * * *"
+      - upstream-pr-opened
+      - upstream-pr-synchronize
+      - upstream-pr-reopened
 
 permissions:
   contents: write
@@ -37,16 +30,13 @@ jobs:
         id: collect
         env:
           GH_TOKEN: ${{ secrets.UPSTREAM_READ_PAT }}
-          INPUT_PR: ${{ github.event.inputs.pr_number || '' }}
           PAYLOAD_PR: ${{ github.event.client_payload.pull_request.number || github.event.client_payload.number || '' }}
         run: |
           set -euo pipefail
           if [ -n "$PAYLOAD_PR" ]; then
             PRS="[$PAYLOAD_PR]"
-          elif [ -n "$INPUT_PR" ]; then
-            PRS="[$INPUT_PR]"
           else
-            PRS=$(gh api "repos/${UPSTREAM_REPO}/pulls" --paginate --jq '[.[] | select(.state=="open" and .draft==false) | .number]')
+            PRS="[]"
           fi
           if [ -z "$PRS" ]; then
             PRS="[]"
@@ -92,8 +82,9 @@ jobs:
             data=$(gh api "repos/${UPSTREAM_REPO}/pulls/${pr}")
             state=$(echo "$data" | jq -r '.state')
             draft=$(echo "$data" | jq -r '.draft')
-            if [ "$state" != "open" ] || [ "$draft" = "true" ]; then
-              echo "Skip #$pr (state=$state draft=$draft)"
+            merged=$(echo "$data" | jq -r '.merged')
+            if [ "$state" != "open" ] || [ "$draft" = "true" ] || [ "$merged" = "true" ]; then
+              echo "Skip #$pr (state=$state draft=$draft merged=$merged)"
               continue
             fi
 
@@ -128,6 +119,19 @@ jobs:
               continue
             fi
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
+            target_html="$PREVIEW_ROOT/pr-${pr}/desktop.html"
+            if [ -f "$target_html" ]; then
+              banner='<div id="pr-preview-disclaimer" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px 44px 12px 16px;background:#d92d20;color:#fff;font:700 14px/1.4 -apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25);">⚠️ 本预览环境源自 Pull Request，用于验证部署效果。完整体验请访问 Win12 稳定版本。 / Preview from a Pull Request for deployment validation. Visit the stable version of Win12 for the full experience.<button type="button" aria-label="关闭 Close" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;">×</button></div>'
+              if ! grep -q 'id="pr-preview-disclaimer"' "$target_html"; then
+                if grep -qi '</body>' "$target_html"; then
+                  BANNER="$banner" perl -0pi -e 's#</body>#$ENV{BANNER}</body>#i' "$target_html"
+                elif grep -qi '</html>' "$target_html"; then
+                  BANNER="$banner" perl -0pi -e 's#</html>#$ENV{BANNER}</html>#i' "$target_html"
+                else
+                  printf '\n%s\n' "$banner" >> "$target_html"
+                fi
+              fi
+            fi
             echo "$pr $sha" >> /tmp/validate.list
           done
 
