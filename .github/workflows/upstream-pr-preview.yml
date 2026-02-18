@@ -180,17 +180,7 @@ jobs:
             url="${PREVIEW_ROOT_URL}/pr-${pr}/desktop.html"
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
-            body=$(cat <<EOF
-${MARKER}
-
-- 预览链接：${url}
-- 提交哈希：${sha}
-- 部署时间（${PREVIEW_TIMEZONE}）：${deployed_at}
-- 原项目：https://github.com/${UPSTREAM_REPO} （EPL-2.0）
-
-> 若PR继续提交，新预览将自动覆盖并更新本评论。
-EOF
-)
+            body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n- 原项目：https://github.com/%s （EPL-2.0）\n\n> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at" "$UPSTREAM_REPO")
             existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker))))[0].id' --arg bot "$BOT_USERNAME" --arg marker "$MARKER" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
