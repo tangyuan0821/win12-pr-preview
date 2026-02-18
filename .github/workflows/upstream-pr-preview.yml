@@ -180,7 +180,7 @@ jobs:
           PREVIEW_ROOT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: |
           set -euo pipefail
-          MARKER="🤖 PR预览自动化机器人"
+          MARKER="🤖 PR预览机器人"
           if [ ! -s /tmp/comment_info.jsonl ]; then
             echo "No successful builds; skip commenting."
             exit 0
@@ -192,7 +192,7 @@ jobs:
             url="${PREVIEW_ROOT_URL}/pr-${pr}/desktop.html"
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
-            body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n\n> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
+            body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n\n>[!TIP]<br> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
             existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker))))[0].id' --arg bot "$BOT_USERNAME" --arg marker "$MARKER" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
