@@ -109,11 +109,12 @@ jobs:
           mkdir -p "$PREVIEW_ROOT"
           echo "$PR_LIST" | jq -e . > /tmp/prs.json
           : > /tmp/comment_info.jsonl
+          : > /tmp/validate.list
 
           PR_COUNT=$(jq 'length' /tmp/prs.json)
           if [ "$PR_COUNT" -eq 0 ]; then
             echo "No open PRs found; will clean gh-pages."
-            echo "暂无进行中的PR" > "$PREVIEW_ROOT/README.md"
+            echo "暂无进行中的PR / No active PR previews" > "$PREVIEW_ROOT/README.md"
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
@@ -131,21 +132,34 @@ jobs:
             archive="pr-${pr}.zip"
             gh api "repos/${head_repo}/zipball/${sha}" > "$archive"
             unzip -q "$archive" -d "/tmp/src-$pr"
-            SRC_DIR=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" | head -n 1)
+            SRC_DIR=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" | head -n 1 || true)
+            if [ -z "$SRC_DIR" ]; then
+              echo "Unable to locate extracted source directory for PR #$pr, skipping.（解压目录缺失，已跳过）"
+              continue
+            fi
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
-
-            pushd "$PREVIEW_ROOT" >/dev/null
-            python -m http.server 8000 >/tmp/http-$pr.log 2>&1 &
-            SERVER_PID=$!
-            trap "kill $SERVER_PID" EXIT
-            sleep 2
-            curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"
-            kill "$SERVER_PID"
-            trap - EXIT
-            popd >/dev/null
-
-            printf '{"number":%s,"sha":"%s"}\n' "$pr" "$sha" >> /tmp/comment_info.jsonl
+            echo "$pr $sha" >> /tmp/validate.list
           done
+
+          if [ -s /tmp/validate.list ]; then
+            pushd "$PREVIEW_ROOT" >/dev/null
+            python -m http.server 8000 >"/tmp/http-server.log" 2>&1 &
+            SERVER_PID=$!
+            trap "kill $SERVER_PID 2>/dev/null" EXIT
+            sleep 2
+            while read -r pr sha; do
+              if curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"; then
+                printf '{"number":%s,"sha":"%s"}\n' "$pr" "$sha" >> /tmp/comment_info.jsonl
+              else
+                echo "desktop.html validation failed for PR #$pr, skipping comment and deployment.（desktop.html 校验失败，已跳过）" >&2
+                tail -n 50 "/tmp/http-server.log" || true
+                rm -rf "pr-${pr}"
+              fi
+            done < /tmp/validate.list
+            trap - EXIT
+            kill "$SERVER_PID" 2>/dev/null || true
+            popd >/dev/null
+          fi
 
       - name: 部署到 GitHub Pages（默认token）
         uses: peaceiris/actions-gh-pages@v4

@@ -80,7 +80,7 @@ jobs:
           PR_COUNT=$(jq 'length' /tmp/prs.json)
           if [ "$PR_COUNT" -eq 0 ]; then
             echo "No open PRs found; will clean gh-pages."
-            echo "暂无进行中的PR" > "$PREVIEW_ROOT/README.md"
+            echo "暂无进行中的PR / No active PR previews" > "$PREVIEW_ROOT/README.md"
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
@@ -100,7 +100,7 @@ jobs:
             unzip -q "$archive" -d "/tmp/src-$pr"
             SRC_DIR=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" | head -n 1 || true)
             if [ -z "$SRC_DIR" ]; then
-              echo "无法定位解压后的源码目录，PR #$pr 跳过。"
+              echo "Unable to locate extracted source directory for PR #$pr, skipping.（解压目录缺失，已跳过）"
               continue
             fi
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
@@ -117,7 +117,7 @@ jobs:
               if curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"; then
                 printf '{"number":%s,"sha":"%s"}\n' "$pr" "$sha" >> /tmp/comment_info.jsonl
               else
-                echo "PR #$pr 的 desktop.html 校验失败，跳过评论与部署该PR。" >&2
+                echo "desktop.html validation failed for PR #$pr, skipping comment and deployment.（desktop.html 校验失败，已跳过）" >&2
                 tail -n 50 "/tmp/http-server.log" || true
                 rm -rf "pr-${pr}"
               fi
