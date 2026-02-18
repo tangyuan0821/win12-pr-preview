@@ -99,17 +99,25 @@ jobs:
             unzip -q "$archive" -d "/tmp/src-$pr"
             SRC_DIR=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" | head -n 1)
             if [ -z "$SRC_DIR" ]; then
-              echo "无法定位解压后的源码目录，PR #$pr 终止。"
-              exit 1
+              echo "无法定位解压后的源码目录，PR #$pr 跳过。"
+              continue
             fi
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
 
             pushd "$PREVIEW_ROOT" >/dev/null
-            python -m http.server 8000 >/tmp/http-$pr.log 2>&1 &
+            python -m http.server 8000 >"/tmp/http-${pr}.log" 2>&1 &
             SERVER_PID=$!
             trap "kill $SERVER_PID" EXIT
             sleep 2
-            curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"
+            if ! curl -fsS "http://localhost:8000/pr-${pr}/desktop.html"; then
+              echo "PR #$pr 的 desktop.html 校验失败，跳过评论与部署该PR。" >&2
+              tail -n 50 "/tmp/http-${pr}.log" || true
+              rm -rf "$PREVIEW_ROOT/pr-${pr}"
+              kill "$SERVER_PID" || true
+              trap - EXIT
+              popd >/dev/null
+              continue
+            fi
             kill "$SERVER_PID"
             trap - EXIT
             popd >/dev/null
