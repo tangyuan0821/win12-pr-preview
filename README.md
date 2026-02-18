@@ -4,6 +4,6 @@
 
 Fully automatic PR previews for the upstream repository: https://github.com/tjy-gitnub/win12.
 
-如您发现任何问题，欢迎通过issues提交反馈。
+如您发现问题，欢迎通过issues提交反馈。
 
 If you encounter any issues, please feel free to submit feedback via Issues.
