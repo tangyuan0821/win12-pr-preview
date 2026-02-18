@@ -166,7 +166,6 @@ jobs:
 > 若PR继续提交，新预览将自动覆盖并更新本评论。
 EOF
 )
-
             existing=$(gh api repos/${UPSTREAM_REPO}/issues/${pr}/comments --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"PR预览自动化机器人\"))))[0].id" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api repos/${UPSTREAM_REPO}/issues/comments/${existing} -X PATCH -f body="$body"
