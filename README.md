@@ -147,7 +147,10 @@ jobs:
             fi
 
             archive="pr-${pr}.zip"
-            gh api "repos/${head_repo}/zipball/${sha}" > "$archive"
+            curl -L --fail --max-filesize 104857600 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -o "$archive" \
+              "https://api.github.com/repos/${head_repo}/zipball/${sha}"
             unzip -q "$archive" -d "/tmp/src-$pr"
             SRC_DIRS=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" || true)
             SRC_DIR=$(printf "%s\n" "$SRC_DIRS" | head -n 1)
@@ -166,7 +169,7 @@ jobs:
 
           if [ -s /tmp/validate.list ]; then
             pushd "$PREVIEW_ROOT" >/dev/null
-            python -m http.server 8000 >"/tmp/http-server.log" 2>&1 &
+            python3 -m http.server 8000 >"/tmp/http-server.log" 2>&1 &
             SERVER_PID=$!
             trap "kill $SERVER_PID 2>/dev/null" EXIT
             sleep 2
@@ -176,7 +179,7 @@ jobs:
               else
                 echo "desktop.html validation failed for PR #$pr, skipping comment and deployment (desktop.html 校验失败，已跳过)" >&2
                 tail -n 50 "/tmp/http-server.log" || true
-                rm -rf "pr-${pr}"
+                rm -rf "${PREVIEW_ROOT}/pr-${pr}"
               fi
             done < /tmp/validate.list
             trap - EXIT
