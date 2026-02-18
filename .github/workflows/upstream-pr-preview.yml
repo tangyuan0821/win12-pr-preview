@@ -14,7 +14,6 @@ on:
       - upstream-pr-opened
       - upstream-pr-synchronize
       - upstream-pr-reopened
-      - upstream-pr-closed
 
 permissions:
   contents: write
@@ -172,7 +171,7 @@ jobs:
           commit_message: "chore: update PR previews"
 
       - name: 发布/更新预览评论（小号，仅PR写权限）
-        if: success()
+        if: success() && github.event_name != 'schedule'
         env:
           GH_TOKEN: ${{ secrets.PREVIEW_COMMENT_PAT }}
           BOT_USERNAME: ${{ secrets.PREVIEW_COMMENT_USERNAME }}
