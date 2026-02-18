@@ -130,7 +130,7 @@ jobs:
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
             target_html="$PREVIEW_ROOT/pr-${pr}/desktop.html"
             if [ -f "$target_html" ]; then
-              banner='<div id="pr-preview-disclaimer" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px 44px 12px 16px;background:#d92d20;color:#fff;font:700 14px/1.4 -apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25);">⚠️ 这是预览版本，不代表正式版本 / This is a preview build and does not represent the official release.<button type="button" aria-label="关闭 Close" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;">×</button></div>'
+              banner='<div id="pr-preview-disclaimer" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px 44px 12px 16px;background:#d92d20;color:#fff;font:700 14px/1.4 -apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25);">⚠️ 本预览环境源自 Pull Request，用于验证部署效果。完整体验请访问 Win12 稳定版本。<button type="button" aria-label="关闭 Close" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;">×</button></div>'
               if ! grep -q 'id="pr-preview-disclaimer"' "$target_html"; then
                 if grep -qi '</body>' "$target_html"; then
                   BANNER="$banner" perl -0pi -e 's#</body>#$ENV{BANNER}</body>#i' "$target_html"
