@@ -2,7 +2,7 @@ name: upstream-pr-preview
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       pr_number:
@@ -185,13 +185,17 @@ jobs:
             echo "No successful builds; skip commenting."
             exit 0
           fi
+          if [ -n "${BOT_USERNAME:-}" ]; then
+            bot_login="$BOT_USERNAME"
+          else
+            bot_login=$(gh api user --jq .login) || { echo "Failed to resolve bot login from token (无法通过令牌解析机器人账号)"; exit 1; }
+          fi
 
           while IFS= read -r line; do
             pr=$(echo "$line" | jq -r '.number')
             sha=$(echo "$line" | jq -r '.sha')
             url="${PREVIEW_ROOT_URL}/pr-${pr}/desktop.html"
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
-            bot_login="${BOT_USERNAME:-$(gh api user --jq .login)}"
 
             body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n\n>[!TIP]<br> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
             existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker)))) | sort_by(.updated_at) | last | .id' --arg bot "$bot_login" --arg marker "$MARKER" || true)
