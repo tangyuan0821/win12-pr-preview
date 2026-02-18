@@ -1,6 +1,8 @@
 name: upstream-pr-preview
 
 on:
+  schedule:
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       pr_number:
@@ -36,12 +38,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.UPSTREAM_READ_PAT }}
           INPUT_PR: ${{ github.event.inputs.pr_number || '' }}
-          PAYLOAD_PR: ${{ github.event.client_payload.pull_request.number || github.event.client_payload.number || '' }}
         run: |
           set -euo pipefail
-          if [ -n "$PAYLOAD_PR" ]; then
-            PRS="[$PAYLOAD_PR]"
-          elif [ -n "$INPUT_PR" ]; then
+          if [ -n "$INPUT_PR" ]; then
             PRS="[$INPUT_PR]"
           else
             PRS=$(gh api "repos/${UPSTREAM_REPO}/pulls" --paginate --jq '[.[] | select(.state=="open" and .draft==false and .merged==false) | .number]')
@@ -172,7 +171,7 @@ jobs:
           commit_message: "chore: update PR previews"
 
       - name: 发布/更新预览评论（小号，仅PR写权限）
-        if: success()
+        if: success() && github.event_name != 'schedule'
         env:
           GH_TOKEN: ${{ secrets.PREVIEW_COMMENT_PAT }}
           BOT_USERNAME: ${{ secrets.PREVIEW_COMMENT_USERNAME }}
@@ -185,6 +184,11 @@ jobs:
             echo "No successful builds; skip commenting."
             exit 0
           fi
+          if [ -n "${BOT_USERNAME:-}" ]; then
+            bot_login="$BOT_USERNAME"
+          else
+            bot_login=$(gh api user --jq .login) || { echo "Failed to resolve bot login from token (无法通过令牌解析机器人账号)"; exit 1; }
+          fi
 
           while IFS= read -r line; do
             pr=$(echo "$line" | jq -r '.number')
@@ -193,7 +197,7 @@ jobs:
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
             body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n\n>[!TIP]<br> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
-            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker))))[0].id' --arg bot "$BOT_USERNAME" --arg marker "$MARKER" || true)
+            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker)))) | sort_by(.updated_at) | last | .id' --arg bot "$bot_login" --arg marker "$MARKER" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
             else
