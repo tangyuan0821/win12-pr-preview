@@ -132,6 +132,11 @@ jobs:
             sha=$(echo "$data" | jq -r '.head.sha')
             head_repo=$(echo "$data" | jq -r '.head.repo.full_name')
 
+            if [ -z "$head_repo" ] || [ "$head_repo" = "null" ]; then
+              echo "Head repo missing for PR #$pr, skipping (源仓库缺失，已跳过)"
+              continue
+            fi
+
             if ! printf '%s' "$head_repo" | grep -Eq '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$'; then
               echo "Unexpected head repo format for PR #$pr, skipping (源仓库格式异常，已跳过)"
               continue
@@ -140,9 +145,15 @@ jobs:
             archive="pr-${pr}.zip"
             gh api "repos/${head_repo}/zipball/${sha}" > "$archive"
             unzip -q "$archive" -d "/tmp/src-$pr"
-            SRC_DIR=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" | head -n 1 || true)
+            SRC_DIRS=$(find "/tmp/src-$pr" -maxdepth 1 -type d -not -path "/tmp/src-$pr" || true)
+            SRC_DIR=$(printf "%s\n" "$SRC_DIRS" | head -n 1)
             if [ -z "$SRC_DIR" ]; then
               echo "Unable to locate extracted source directory for PR #$pr, skipping (解压目录缺失，已跳过)"
+              continue
+            fi
+            SRC_COUNT=$(printf "%s\n" "$SRC_DIRS" | grep -c . || true)
+            if [ "${SRC_COUNT:-0}" -ne 1 ]; then
+              echo "Unexpected archive layout for PR #$pr, skipping (解压目录数量异常，已跳过)"
               continue
             fi
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
@@ -196,7 +207,7 @@ jobs:
             pr=$(echo "$line" | jq -r '.number')
             sha=$(echo "$line" | jq -r '.sha')
             url="${PREVIEW_ROOT_URL}/pr-${pr}/desktop.html"
-            deployed_at=$(TZ=${PREVIEW_TIMEZONE} date "+%Y-%m-%d %H:%M:%S %Z")
+            deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
             body=$(cat <<EOF
 ${MARKER}
@@ -210,7 +221,7 @@ ${MARKER}
 EOF
 )
 
-            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq "map(select(.user.login==\"${BOT_USERNAME}\" and (.body | contains(\"${MARKER}\"))))[0].id" || true)
+            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker))))[0].id' --arg bot "$BOT_USERNAME" --arg marker "$MARKER" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
             else
