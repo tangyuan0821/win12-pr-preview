@@ -1,4 +1,4 @@
-# Win12项目 PR 预览 / win12 PR 预览
+# Win12项目 PR 预览 / Win12 PR Preview
 
 面向上游仓库 https://github.com/tjy-gitnub/win12 的全自动 PR 预览发布。
 
