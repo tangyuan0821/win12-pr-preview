@@ -216,7 +216,7 @@ jobs:
             url="${PREVIEW_ROOT_URL}/pr-${pr}/desktop.html"
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
-            body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n- 原项目：https://github.com/%s （EPL-2.0）\n\n> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at" "$UPSTREAM_REPO")
+            body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n\n> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
 
             existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker))))[0].id' --arg bot "$BOT_USERNAME" --arg marker "$MARKER" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
@@ -235,7 +235,7 @@ jobs:
 5. 首次可通过 **Actions → upstream-pr-preview → Run workflow** 手动触发；如需单个PR，输入 PR 号。
 6. 若要即时响应上游 PR 事件，在外部监听后调用 `repository_dispatch`（示例命令见上）。
 7. Workflow 会：过滤草稿/关闭PR → 拉取PR源分支 → 构建 `pr-{PR号}` 目录 → 本地校验 `desktop.html` → 推送至 `gh-pages`。
-8. 部署成功后，小号会在对应上游 PR 发布/更新单条评论，包含预览直链、SHA、时间（默认 `PREVIEW_TIMEZONE=Asia/Shanghai` 即 UTC+8，可按需覆盖）、项目地址与许可声明。
+8. 部署成功后，小号会在对应上游 PR 发布/更新单条评论，包含预览直链、SHA、时间（默认 `PREVIEW_TIMEZONE=Asia/Shanghai` 即 UTC+8，可按需覆盖）。
 9. Pages 访问规则：`https://{owner}.github.io/win12-pr-preview/pr-<PR号>/desktop.html`。
 10. PR 合并或关闭后，定时/手动运行会重建 `gh-pages`，未列出的目录被移除，实现自动清理。
 
@@ -248,6 +248,6 @@ jobs:
 
 ## 5）开源合规注意事项（EPL-2.0）
 - 保留并同步上游仓库的作者署名和 LICENSE 文件（Workflow 使用 rsync 全量保留）。
-- 预览站点仅作展示，不修改上游授权条款；评论中附上原项目地址与 EPL-2.0 说明。
+- 预览站点仅作展示，不修改上游授权条款；评论仅包含预览信息。
 - 部署目录隔离（`pr-{PR号}`），不会覆盖或篡改上游代码；仅在个人仓库的 Pages 空间输出静态预览。
 - 不向上游提交任何配置变更，遵循“只读拉取、独立部署、最小权限”原则。
