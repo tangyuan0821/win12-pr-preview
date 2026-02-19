@@ -2,16 +2,13 @@ name: upstream-pr-preview
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 * * * *"  
   workflow_dispatch:
     inputs:
       pr_number:
         description: '仅处理指定的上游PR编号（可选）'
         required: false
   # repository_dispatch：由上游仓库的 workflow 主动调用本仓库的 API 触发
-  # 需要在上游 tjy-gitnub/win12 中部署一个监听 pull_request 事件、
-  # 并通过 PAT 向本仓库发送 repository_dispatch 的 workflow，
-  # 否则只有下方的定时任务（每小时）会自动检测新PR。
   repository_dispatch:
     types:
       - upstream-pr-opened
@@ -40,7 +37,7 @@ jobs:
         id: collect
         env:
           GH_TOKEN: ${{ secrets.UPSTREAM_READ_PAT }}
-          INPUT_PR: ${{ github.event.inputs.pr_number || '' }}
+          INPUT_PR: ${{ github.event.client_payload.pr_number || github.event.inputs.pr_number || '' }}
         run: |
           set -euo pipefail
           if [ -n "$INPUT_PR" ]; then
