@@ -8,7 +8,10 @@ on:
       pr_number:
         description: '仅处理指定的上游PR编号（可选）'
         required: false
-  # 供外部调用 repository_dispatch（监听上游PR opened/synchronize/reopened 后转发）
+  # repository_dispatch：由上游仓库的 workflow 主动调用本仓库的 API 触发
+  # 需要在上游 tjy-gitnub/win12 中部署一个监听 pull_request 事件、
+  # 并通过 PAT 向本仓库发送 repository_dispatch 的 workflow，
+  # 否则只有下方的定时任务（每小时）会自动检测新PR。
   repository_dispatch:
     types:
       - upstream-pr-opened
@@ -128,7 +131,7 @@ jobs:
             rsync -a --delete "${SRC_DIR}/" "$PREVIEW_ROOT/pr-${pr}/"
             target_html="$PREVIEW_ROOT/pr-${pr}/desktop.html"
             if [ -f "$target_html" ]; then
-              banner='<div id="pr-preview-disclaimer" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px 44px 12px 16px;background:#d92d20;color:#fff;font:700 14px/1.4 -apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25);">⚠️ 本预览环境源自 Pull Request，用于验证部署效果。完整体验请访问 Win12 稳定版本。 / Preview from a Pull Request for deployment validation. Visit the stable version of Win12 for the full experience.<button type="button" aria-label="关闭 Close" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;">×</button></div>'
+              banner='<div id="pr-preview-disclaimer" style="position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:12px 44px 12px 16px;background:#d92d20;color:#fff;font:700 14px/1.4 -apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.25);">本预览环境源自 Pull Request，用于验证部署效果。完整体验请访问 Win12 稳定版本。 / Preview from a Pull Request for deployment validation. Visit the stable version of Win12 for the full experience.<button type="button" aria-label="关闭 Close" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;">×</button></div>'
               if ! grep -q 'id="pr-preview-disclaimer"' "$target_html"; then
                 if grep -qi '</body>' "$target_html"; then
                   BANNER="$banner" perl -0pi -e 's#</body>#$ENV{BANNER}</body>#i' "$target_html"
@@ -179,7 +182,7 @@ jobs:
           PREVIEW_ROOT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: |
           set -euo pipefail
-          MARKER="🤖 PR预览机器人"
+          MARKER="PR预览"
           if [ ! -s /tmp/comment_info.jsonl ]; then
             echo "No successful builds; skip commenting."
             exit 0
@@ -196,7 +199,7 @@ jobs:
             url="${PREVIEW_ROOT_URL}/pr-${pr}/desktop.html"
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
-            body=$(printf '%s\n\n- 预览链接：%s\n- 提交哈希：%s\n- 部署时间（%s）：%s\n\n>[!TIP]<br> 若PR继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
+            body=$(printf '**%s**\n\n| 项目 | 详情 |\n|------|------|\n| 预览链接 | %s |\n| 提交哈希 | `%s` |\n| 部署时间（%s） | %s |\n\n> [!TIP]\n> 若 PR 继续提交，新预览将自动覆盖并更新本评论。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
             existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker)))) | sort_by(.updated_at) | last | .id' --arg bot "$bot_login" --arg marker "$MARKER" || true)
             if [ -n "$existing" ] && [ "$existing" != "null" ]; then
               gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
