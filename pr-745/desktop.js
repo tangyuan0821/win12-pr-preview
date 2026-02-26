@@ -2444,39 +2444,40 @@ function checkOrientation() {
     const isPortrait = window.matchMedia("(orientation: portrait)").matches;
     if (isMobileDevice() && isPortrait) {
         container.style.display = "flex"; // 显示提示
-		document.body.classList.add('mobile-display-mode');//接入CSS
-        document.addEventListener('touchmove', (e) => {
-            if (e.target.closest('.win-window-titlebar')) {
-                e.preventDefault(); 
             }
         }, { passive: false });
-
-        //长按触发右键
-        setupLongPressContextMenu();
 
     } else {
         container.style.display = "none"; // 隐藏提示
     }
 }
 
-function setupLongPressContextMenu() {
-    let timer = null;
-    document.addEventListener('touchstart', (e) => {
-        timer = setTimeout(() => {
-            const touch = e.touches[0];
-            const event = new MouseEvent('contextmenu', {
-                clientX: touch.clientX,
-                clientY: touch.clientY,
-                bubbles: true,
-                cancelable: true
-            });
-            e.target.dispatchEvent(event);
-        }, 600); //
-    });
-
-    document.addEventListener('touchend', () => clearTimeout(timer));
-    document.addEventListener('touchmove', () => clearTimeout(timer));
+function handleIconInteraction(iconElement, callback) {
+    if (isMobileDevice()) {
+        iconElement.addEventListener('click', callback);
+    } else {
+        iconElement.addEventListener('dblclick', callback);
+    }
 }
+
+// 初始位置优化
+function getInitialPosition() {
+    if (isMobileDevice()) {
+        return {
+            x: window.innerWidth * 0.05,
+            y: 20,
+            width: "90%",
+            height: "75%"
+        };
+    }
+    return { x: 100, y: 100, width: "800px", height: "600px" };
+}
+
+window.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    renderWin12ContextMenu(e.clientX, e.clientY);
+});
+
 
 // 监听屏幕方向变化
 window.addEventListener("resize", checkOrientation);
