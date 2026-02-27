@@ -54,6 +54,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: prepare
+    if: needs.prepare.outputs.prs != '[]'
     permissions:
       contents: write
     env:
@@ -77,8 +78,8 @@ jobs:
 
           PR_COUNT=$(jq 'length' /tmp/prs.json)
           if [ "$PR_COUNT" -eq 0 ]; then
-            echo "No open PRs found; will clean gh-pages."
-            echo "暂无进行中的PR / No active PR previews" > "$PREVIEW_ROOT/README.md"
+            echo "No open PRs found; skipping deployment."
+            exit 0
           fi
 
           for pr in $(jq -r '.[]' /tmp/prs.json); do
