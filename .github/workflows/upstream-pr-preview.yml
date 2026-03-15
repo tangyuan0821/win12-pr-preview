@@ -198,9 +198,20 @@ jobs:
             deployed_at=$(env TZ="${PREVIEW_TIMEZONE}" date "+%Y-%m-%d %H:%M:%S %Z")
 
             body=$(printf '**%s**\n\n| 项目 | 详情 |\n|------|------|\n| 预览链接 | %s |\n| 提交哈希 | `%s` |\n| 部署时间（%s） | %s |\n\n> [!TIP]\n> 💡 若 PR 继续提交，新预览将自动覆盖并更新本评论。\n> 如您发现问题，欢迎通过[issues](https://github.com/tangyuan0821/win12-pr-preview/issues)提交反馈。\n' "$MARKER" "$url" "$sha" "$PREVIEW_TIMEZONE" "$deployed_at")
-            existing=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker)))) | sort_by(.updated_at) | last | .id' --arg bot "$bot_login" --arg marker "$MARKER" || true)
-            if [ -n "$existing" ] && [ "$existing" != "null" ]; then
-              gh api "repos/${UPSTREAM_REPO}/issues/comments/${existing}" -X PATCH -f body="$body"
+            existing_ids=$(gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" --jq 'map(select(.user.login==$bot and (.body | contains($marker)))) | sort_by(.created_at) | map(.id) | .[]' --arg bot "$bot_login" --arg marker "$MARKER" || true)
+            keep_id=$(printf "%s\n" "$existing_ids" | tail -n 1 | tr -d '\n')
+            stale_ids=$(printf "%s\n" "$existing_ids" | sed '$d' || true)
+
+            # Remove stale preview comments so each PR keeps only one preview link comment.
+            if [ -n "$stale_ids" ]; then
+              while read -r cid; do
+                [ -n "$cid" ] || continue
+                gh api "repos/${UPSTREAM_REPO}/issues/comments/${cid}" -X DELETE || true
+              done <<< "$stale_ids"
+            fi
+
+            if [ -n "$keep_id" ]; then
+              gh api "repos/${UPSTREAM_REPO}/issues/comments/${keep_id}" -X PATCH -f body="$body"
             else
               gh api "repos/${UPSTREAM_REPO}/issues/${pr}/comments" -X POST -f body="$body"
             fi
