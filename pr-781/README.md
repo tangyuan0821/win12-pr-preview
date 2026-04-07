@@ -109,14 +109,6 @@ _AI Copilot([相关信息](./scripts/AI%20Copilot%20service/README.md))_
 - [x] 接入 AI
 - [ ] 将项目更名为 "550W"
 
-## Wiki 文档
-
-我们已弃用 GitHub 提供的 "Wiki" 栏，
-如要查看最新的 Wiki，请到：
-
-[**GitBook**](win12.gitbook.io) 或 [**此国内站点**](https://freedom-323.github.io/win12-wiki/)。
-(俩Wiki自动同步更新)
-
 ## 开源声明
 
 Windows12 网页版的内容均采用较为宽松的著作权许可协议授权社会公众使用。
@@ -148,7 +140,7 @@ Windows12 网页版的媒体文件内容（图形作品、美术作品、视听�
 
 本项目使用 i18n 库实现多语言，翻译工作依据[翻译贡献指南](lang/readme.md)进行。
 
-## 项目索引
+# 项目索引
 由于历史遗留问题，本项目的很多内容分散在不同的仓库或网站中，为了方便大家查找，以下是一些内容的索引。
 - [状态监测](https://status.win12.tech/status/win12)
 - [主题仓库](https://github.com/tjy-gitnub/win12-theme)
@@ -159,7 +151,6 @@ Windows12 网页版的媒体文件内容（图形作品、美术作品、视听�
 - [react版本](https://github.com/User782Tec/win12-react)
 - [CDN](https://github.com/User782Tec/win12-cdn)
 - [扩展](https://github.com/User782Tec/win12-addons)
-- [Wiki仓库](https://github.com/freedom-323/win12-wiki)
 ## 贡献者
 
 核心开发者: tjy-gitnub([Bilibili](https://space.bilibili.com/2010692096/))，NB-group([Bilibili](https://space.bilibili.com/1570243738/))，782([Bilibili](https://space.bilibili.com/1046361194/))（三人当年均为初中生）
