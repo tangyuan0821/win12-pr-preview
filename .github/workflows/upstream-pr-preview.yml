@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UPSTREAM_REPO: tjy-gitnub/win12
+  UPSTREAM_REPO: win12-online/win12
   PREVIEW_ROOT: site
   PREVIEW_TIMEZONE: Asia/Shanghai
 
@@ -58,7 +58,7 @@ jobs:
     permissions:
       contents: write
     env:
-      UPSTREAM_REPO: tjy-gitnub/win12
+      UPSTREAM_REPO: win12-online/win12
       PR_LIST: ${{ needs.prepare.outputs.prs }}
     steps:
       - name: 检出当前仓库（默认token，仅用于部署）
@@ -176,7 +176,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PREVIEW_COMMENT_PAT }}
           BOT_USERNAME: ${{ secrets.PREVIEW_COMMENT_USERNAME }}
-          UPSTREAM_REPO: tjy-gitnub/win12
+          UPSTREAM_REPO: win12-online/win12
           PREVIEW_ROOT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
         run: |
           set -euo pipefail
