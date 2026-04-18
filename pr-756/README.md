@@ -3,19 +3,22 @@
 </p>
 <h1 align="center">Windows 12 网页版</h1>
 <p align="center" class="shields">
-  <span href="https://github.com/tjy-gitnub/win12/issues" style="text-decoration:none">
-    <img src="https://img.shields.io/github/issues/tjy-gitnub/win12.svg" alt="GitHub issues"/>
+  <span href="https://github.com/win12-online/win12/issues" style="text-decoration:none">
+    <img src="https://img.shields.io/github/issues/win12-online/win12.svg" alt="GitHub issues"/>
   </span>
-  <span href="https://github.com/tjy-gitnub/win12/stargazers" style="text-decoration:none">
-    <img src="https://img.shields.io/github/stars/tjy-gitnub/win12.svg" alt="GitHub stars"/>
+  <span href="https://github.com/win12-online/win12/stargazers" style="text-decoration:none">
+    <img src="https://img.shields.io/github/stars/win12-online/win12.svg" alt="GitHub stars"/>
   </span>
-  <span href="https://github.com/tjy-gitnub/win12/network" style="text-decoration:none">
-    <img src="https://img.shields.io/github/forks/tjy-gitnub/win12.svg" alt="GitHub forks"/>
+  <span href="https://github.com/win12-online/win12/network" style="text-decoration:none">
+    <img src="https://img.shields.io/github/forks/win12-online/win12.svg" alt="GitHub forks"/>
+  </span>
+  <span href="https://status.win12.tech/status/win12" style="text-decoration:none">
+    <img src="https://status.win12.tech/api/badge/5/status?style=plastic" alt="GitHub forks"/>
   </span>
 </p>
 <p align="center">
   <a href="https://trendshift.io/repositories/115" target="_blank">
-    <img src="https://trendshift.io/api/badge/repositories/115" alt="tjy-gitnub%2Fwin12 | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/>
+    <img src="https://trendshift.io/api/badge/repositories/115" alt="win12-online%2Fwin12 | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/>
   </a>
 </p>
 <p align="center" class="language" title="Language selection 语言选择">
@@ -26,8 +29,8 @@
 </p>
 <details align="center">
   <summary>Star History</summary>
-  <a href="https://star-history.com/#tjy-gitnub/win12&Date" style="text-decoration:none">
-    <img src="https://api.star-history.com/svg?repos=tjy-gitnub/win12&type=Date" alt="Star History Chart">
+  <a href="https://star-history.com/#win12-online/win12&Date" style="text-decoration:none">
+    <img src="https://api.star-history.com/svg?repos=win12-online/win12&type=Date" alt="Star History Chart">
   </a>
 </details>
 
@@ -60,19 +63,19 @@
 
 ## 效果展示
 
-![image](https://tjy-gitnub.github.io/win12/img/start-menu.png)
+![image](https://win12-online.github.io/win12/img/start-menu.png)
 
 _开始菜单_
 
-![image](https://tjy-gitnub.github.io/win12/img/colorful-apps.png)
+![image](https://win12-online.github.io/win12/img/colorful-apps.png)
 
 _丰富的应用_
 
-![image](https://tjy-gitnub.github.io/win12/img/dark-mode.png)
+![image](https://win12-online.github.io/win12/img/dark-mode.png)
 
 _深色模式_
 
-![image](https://tjy-gitnub.github.io/win12/img/ai-copilot.png)
+![image](https://win12-online.github.io/win12/img/ai-copilot.png)
 _AI Copilot([相关信息](./scripts/AI%20Copilot%20service/README.md))_
 
 ## 前景规划
@@ -127,11 +130,11 @@ Windows12 网页版的媒体文件内容（图形作品、美术作品、视听�
 
 > [!CAUTION]<br> 以下条款适用于中华人民共和国（不含香港特别行政区、澳门特别行政区、台湾地区）以及“Windows12 网页版”项目服务器所在地的相关法律、法规、政府规章和其他具有强制性的规定。
 
-1. 任何使用、分享或分发本项目者，必须在项目介绍、文档或相关材料中明确附上原作者信息（谭景元，tjy-gitnub）及原项目链接（<https://github.com/tjy-gitnub/win12>）。**您不得故意隐瞒、移除或修改原项目中的署名信息、作者信息或项目链接等；不得限制他人查看这些信息**。
+1. 任何使用、分享或分发本项目者，必须在项目介绍、文档或相关材料中明确附上原作者信息及原项目链接（<https://github.com/win12-online/win12>）。**您不得故意隐瞒、移除或修改原项目中的署名信息、作者信息或项目链接等；不得限制他人查看这些信息**。
 2. 将本项目用于商业用途者，必须标明原作者及项目链接，并以 EPL-2.0 协议开源全部相关源代码。
 3. 未经修改的源代码不得用于商业用途。
 4. 任何使用或分享本项目者，不得移除、隐藏或限制查看本开源声明。
-5. 您在发现他人违反前四款所列各项要求时，请及时[向我们报告](https://github.com/tjy-gitnub/win12/issues)，并尽可能及时制止相关内容的发布与传输。
+5. 您在发现他人违反前四款所列各项要求时，请及时[向我们报告](https://github.com/win12-online/win12/issues)，并尽可能及时制止相关内容的发布与传输。
 6. 若您实施侵权行为，我们将根据法律规定保留记录，且保留在任何时间以一切方式采取法律行动、追究法律责任的权利（包括但不限于依法向执法机关提交报告、向司法机关提出控告、配合执法机关和司法机关调查等）。
 
 ## 贡献须知
@@ -140,14 +143,15 @@ Windows12 网页版的媒体文件内容（图形作品、美术作品、视听�
 
 本项目使用 i18n 库实现多语言，翻译工作依据[翻译贡献指南](lang/readme.md)进行。
 
-# 项目索引
+## 项目索引
 由于历史遗留问题，本项目的很多内容分散在不同的仓库或网站中，为了方便大家查找，以下是一些内容的索引。
 - [状态监测](https://status.win12.tech/status/win12)
 - [主题仓库](https://github.com/tjy-gitnub/win12-theme)
 - [PR预览](https://github.com/tangyuan0821/win12-pr-preview)
+- [Wiki仓库](https://github.com/freedom-323/win12-wiki)
 - [文档（已存档）](https://github.com/tangyuan0821/windows12-docs)
 - [离线仓库](https://github.com/tjy-gitnub/win12-offline)
-- [应用数据仓库](https://github.com/tjy-gitnub/win12-msstore)
+- [应用数据仓库](https://github.com/win12-online/win12-msstore)
 - [react版本](https://github.com/User782Tec/win12-react)
 - [CDN](https://github.com/User782Tec/win12-cdn)
 - [扩展](https://github.com/User782Tec/win12-addons)
@@ -155,7 +159,7 @@ Windows12 网页版的媒体文件内容（图形作品、美术作品、视听�
 
 核心开发者: tjy-gitnub([Bilibili](https://space.bilibili.com/2010692096/))，NB-group([Bilibili](https://space.bilibili.com/1570243738/))，782([Bilibili](https://space.bilibili.com/1046361194/))（三人当年均为初中生）
 
-项目贡献者:详见[此处](https://github.com/tjy-gitnub/win12/graphs/contributors)（感谢我们出色的贡献者！）
+项目贡献者:详见[此处](https://github.com/win12-online/win12/graphs/contributors)（感谢我们出色的贡献者！）
 
 ## 资助我们
 
