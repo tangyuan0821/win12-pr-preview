@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows 12 网页版</title>
+  <meta name="description" content="Windows 12 网页版是一个在线体验 Windows 12 操作系统的开源项目, 使用 HTML、CSS 和 JavaScript 模拟 Windows 12 操作系统的界面与交互。">
+  <link rel="stylesheet" href="bootstrap-icons.css">
+  <base target="_blank">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f5f5f7;
+      --surface: #fff;
+      --text: #1d1d1f;
+      --text-2: #6e6e73;
+      --text-3: #a1a1a6;
+      --accent: #0078d4;
+      --accent-hover: #005fb8;
+      --border: #d2d2d7;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    .hero {
+      padding: 80px 0 0;
+      text-align: center;
+    }
+
+    .hero-logo {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 68px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+    }
+
+    .hero h1 span {
+      font-weight: 300;
+      color: var(--text-2);
+    }
+
+    .hero .tagline {
+      font-size: 17px;
+      color: var(--text-2);
+      margin-top: 10px;
+    }
+
+    .hero .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 28px;
+      padding: 11px 26px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+
+    .hero .cta:hover { background: var(--accent-hover); }
+    .hero .cta:active { transform: scale(.97); }
+
+    .hero-preview {
+      margin: 40px auto 0;
+      max-width: 960px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow:
+        0 2px 4px rgba(0,0,0,.04),
+        0 8px 24px rgba(0,0,0,.06),
+        0 24px 48px rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.06);
+    }
+
+    .hero-preview img {
+      width: 100%;
+      display: block;
+    }
+
+    .stats {
+      padding: 52px 0 48px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 72px;
+    }
+
+    .stat { text-align: center; }
+
+    .stat .num {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+
+    .stat .label {
+      font-size: 12px;
+      color: var(--text-3);
+      font-weight: 500;
+      margin-top: 2px;
+      letter-spacing: 0.02em;
+    }
+    .section-head {
+      margin-bottom: 28px;
+    }
+
+    .section-head h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-top: 4px;
+    }
+
+    .team {
+      padding: 0 0 72px;
+    }
+
+    .core-team {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
+      margin-bottom: 44px;
+    }
+
+    .member {
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .member:hover { opacity: .65; }
+
+    .member img {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: cover;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .member .name {
+      font-size: 13px;
+      font-weight: 600;
+      display: block;
+      line-height: 1.3;
+    }
+
+    .member .handle {
+      font-size: 11px;
+      color: var(--text-3);
+      display: block;
+      margin-top: 1px;
+    }
+
+    .contributors-area h3 {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .contributor-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .contributor-list a {
+      display: block;
+      transition: opacity .15s;
+    }
+
+    .contributor-list a:hover { opacity: .55; }
+
+    .contributor-list img {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .contributor-list .more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      color: var(--text-3);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color .2s, color .2s;
+    }
+
+    .contributor-list .more:hover {
+      border-color: var(--text-3);
+      color: var(--text-2);
+    }
+
+
+    #footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 24px 0;
+    }
+
+    #footer > div {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color .15s;
+    }
+
+    #footer a:hover { color: var(--text); }
+
+    #footer a icon {
+      font-size: 14px;
+    }
+
+    #footer a svg {
+      width: 20px;
+      height: 20px;
+    }
+
+
+    @media (max-width: 768px) {
+      .hero { padding: 56px 0 0; }
+      .hero-logo { width: 56px; height: 56px; }
+      .hero .tagline { font-size: 15px; }
+      .hero-preview { margin-top: 28px; border-radius: 8px; }
+      .stats { padding: 36px 0 32px; }
+      .stats-row { gap: 40px; }
+      .stat .num { font-size: 26px; }
+      .core-team { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .container { padding: 0 20px; }
+      .team { padding-bottom: 56px; }
+    }
+
+    @media (max-width: 480px) {
+      .core-team { grid-template-columns: repeat(2, 1fr); }
+      .stats-row { gap: 28px; }
+      .stat .num { font-size: 22px; }
+      #footer > div { padding: 0 20px; }
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <section class="hero">
+    <div class="container">
+      <img src="icon/logo.svg" class="hero-logo" alt="Windows 12">
+      <h1>Windows 12 <span>online</span></h1>
+      <a href="boot.html" class="cta">立即体验 <i class="bi bi-arrow-right"></i></a>
+      <div class="hero-preview">
+        <img src="img/colorful-apps.png" alt="Windows 12 桌面预览" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+
+  <section class="stats">
+    <div class="container">
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">7k+</div>
+          <div class="label">GitHub Stars</div>
+        </div>
+        <div class="stat">
+          <div class="num">#3</div>
+          <div class="label">Trending 最高排名</div>
+        </div>
+        <div class="stat">
+          <div class="num">30+</div>
+          <div class="label">贡献者</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="team">
+    <div class="container">
+      <div class="section-head">
+        <h2>开发团队</h2>
+      </div>
+
+      <div class="core-team">
+        <div class="member" onclick="window.open('https://github.com/tjy-gitnub','_blank')">
+          <img src="https://github.com/tjy-gitnub.png" alt="Starry Source" loading="lazy">
+          <span class="name">Starry Source</span>
+          <span class="handle">@tjy-gitnub</span>
+        </div>
+        <div class="member" onclick="window.open('https://github.com/User782Tec','_blank')">
+          <img src="https://github.com/User782Tec.png" alt="User782Tec" loading="lazy">
+          <span class="name">User782Tec</span>
+        </div>
+        <div class="member" onclick="window.open('https://github.com/tangyuan0821','_blank')">
+          <img src="https://github.com/tangyuan0821.png" alt="Paper Moon" loading="lazy">
+          <span class="name">Tang Yuan</span>
+          <span class="handle">@tangyuan0821</span>
+        </div>
+        <div class="member" onclick="window.open('https://github.com/NB-Group','_blank')">
+          <img src="https://github.com/NB-Group.png" alt="Lianghaowen" loading="lazy">
+          <span class="name">Lianghaowen</span>
+          <span class="handle">@NB-Group</span>
+        </div>
+        <div class="member" onclick="window.open('https://github.com/fzlzjerry','_blank')">
+          <img src="https://github.com/fzlzjerry.png" alt="Morax" loading="lazy">
+          <span class="name">Morax</span>
+          <span class="handle">@fzlzjerry</span>
+        </div>
+      </div>
+
+      <div class="contributors-area">
+        <h3>贡献者们</h3>
+        <div class="contributor-list">
+          <a href="https://github.com/HHCL233"><img src="https://github.com/HHCL233.png" alt="HHCL233" loading="lazy"></a>
+          <a href="https://github.com/lh11117"><img src="https://github.com/lh11117.png" alt="lh11117" loading="lazy"></a>
+          <a href="https://github.com/Jimmy-Effe"><img src="https://github.com/Jimmy-Effe.png" alt="Jimmy-Effe" loading="lazy"></a>
+          <a href="https://github.com/lingbopro"><img src="https://github.com/lingbopro.png" alt="lingbopro" loading="lazy"></a>
+          <a href="https://github.com/kjmjh"><img src="https://github.com/kjmjh.png" alt="kjmjh" loading="lazy"></a>
+          <a href="https://github.com/jobsofferings"><img src="https://github.com/jobsofferings.png" alt="jobsofferings" loading="lazy"></a>
+          <a href="https://github.com/copilot-swe-agent"><img src="https://github.com/copilot-swe-agent.png" alt="Copilot" loading="lazy"></a>
+          <a href="https://github.com/YangFong"><img src="https://github.com/YangFong.png" alt="YangFong" loading="lazy"></a>
+          <a href="https://github.com/freedom-323"><img src="https://github.com/freedom-323.png" alt="freedom-323" loading="lazy"></a>
+          <a href="https://github.com/stxttkx"><img src="https://github.com/stxttkx.png" alt="stxttkx" loading="lazy"></a>
+          <a href="https://github.com/starry-source"><img src="https://github.com/starry-source.png" alt="starry-source" loading="lazy"></a>
+          <a href="https://github.com/keyork"><img src="https://github.com/keyork.png" alt="keyork" loading="lazy"></a>
+          <a href="https://github.com/XueJourney"><img src="https://github.com/XueJourney.png" alt="XueJourney" loading="lazy"></a>
+          <a href="https://github.com/AZCodingAccount"><img src="https://github.com/AZCodingAccount.png" alt="AZCodingAccount" loading="lazy"></a>
+          <a href="https://github.com/ProgramCX"><img src="https://github.com/ProgramCX.png" alt="ProgramCX" loading="lazy"></a>
+          <a href="https://github.com/Tsingkai"><img src="https://github.com/Tsingkai.png" alt="Tsingkai" loading="lazy"></a>
+          <a href="https://github.com/skyclouds2001"><img src="https://github.com/skyclouds2001.png" alt="skyclouds2001" loading="lazy"></a>
+          <a href="https://github.com/sml2"><img src="https://github.com/sml2.png" alt="sml2" loading="lazy"></a>
+          <a href="https://github.com/ryan1114-carer"><img src="https://github.com/ryan1114-carer.png" alt="ryan1114-carer" loading="lazy"></a>
+          <a href="https://github.com/lu-ph"><img src="https://github.com/lu-ph.png" alt="lu-ph" loading="lazy"></a>
+          <a href="https://github.com/Creeper9480"><img src="https://github.com/Creeper9480.png" alt="Creeper9480" loading="lazy"></a>
+          <a href="https://github.com/fyzhu"><img src="https://github.com/fyzhu.png" alt="fyzhu" loading="lazy"></a>
+          <a href="https://github.com/dddddgz"><img src="https://github.com/dddddgz.png" alt="dddddgz" loading="lazy"></a>
+          <a href="https://github.com/0xbe37e"><img src="https://github.com/0xbe37e.png" alt="0xbe37e" loading="lazy"></a>
+          <a href="https://github.com/alaricholt677"><img src="https://github.com/alaricholt677.png" alt="alaricholt677" loading="lazy"></a>
+          <a class="more" href="https://github.com/win12-online/win12/graphs/contributors">+</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <div id="footer">
+    <div>
+      <a href="boot.html">
+        立即体验
+      </a>
+      <a href="https://github.com/win12-online/win12">
+        <svg xmlns="http://www.w3.org/2000/svg" width="98" height="96" viewBox="0 0 98 96" fill="none">
+          <g clip-path="url(#clip0_730_27126)">
+            <path d="M41.4395 69.3848C28.8066 67.8535 19.9062 58.7617 19.9062 46.9902C19.9062 42.2051 21.6289 37.0371 24.5 33.5918C23.2559 30.4336 23.4473 23.7344 24.8828 20.959C28.7109 20.4805 33.8789 22.4902 36.9414 25.2656C40.5781 24.1172 44.4062 23.543 49.0957 23.543C53.7852 23.543 57.6133 24.1172 61.0586 25.1699C64.0254 22.4902 69.2891 20.4805 73.1172 20.959C74.457 23.543 74.6484 30.2422 73.4043 33.4961C76.4668 37.1328 78.0937 42.0137 78.0937 46.9902C78.0937 58.7617 69.1934 67.6621 56.3691 69.2891C59.623 71.3945 61.8242 75.9883 61.8242 81.252L61.8242 91.2051C61.8242 94.0762 64.2168 95.7031 67.0879 94.5547C84.4102 87.9512 98 70.6289 98 49.1914C98 22.1074 75.9883 6.69539e-07 48.9043 4.309e-07C21.8203 1.92261e-07 -1.9479e-07 22.1074 -4.3343e-07 49.1914C-6.20631e-07 70.4375 13.4941 88.0469 31.6777 94.6504C34.2617 95.6074 36.75 93.8848 36.75 91.3008L36.75 83.6445C35.4102 84.2188 33.6875 84.6016 32.1562 84.6016C25.8398 84.6016 22.1074 81.1563 19.4277 74.7441C18.375 72.1602 17.2266 70.6289 15.0254 70.3418C13.877 70.2461 13.4941 69.7676 13.4941 69.1934C13.4941 68.0449 15.4082 67.1836 17.3223 67.1836C20.0977 67.1836 22.4902 68.9063 24.9785 72.4473C26.8926 75.2227 28.9023 76.4668 31.2949 76.4668C33.6875 76.4668 35.2187 75.6055 37.4199 73.4043C39.0469 71.7773 40.291 70.3418 41.4395 69.3848Z" fill="currentColor" />
+          </g>
+          <defs>
+            <clipPath id="clip0_730_27126">
+              <rect width="98" height="96" fill="white" />
+            </clipPath>
+          </defs>
+        </svg>
+        win12-online/win12
+      </a>
+    </div>
+  </div>
+
+</body>
+
+</html>
