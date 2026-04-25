@@ -2097,64 +2097,42 @@ function dragBrightness(e) {
     const container = $('#control>.cont>.bottom>.brightness>.range-container')[0];
     const after = $('#control>.cont>.bottom>.brightness>.range-container>.after')[0];
     const slider = $('#control>.cont>.bottom>.brightness>.range-container>.slider-btn')[0];
-    const flagTag = document.getElementById('aug31-flag'); // The hidden element
-    
     const viewport = container.getBoundingClientRect().left;
     const width = Number(window.getComputedStyle(container, null).width.split('px')[0]);
-
     move(e);
     page.onmousemove = move;
     page.ontouchmove = move;
     container.classList.add('active');
-
     function move(e) {
         let clientX;
         if (e.type.match('mouse')) {
             clientX = e.clientX;
-        } else if (e.type.match('touch')) {
+        }
+        else if (e.type.match('touch')) {
             clientX = e.touches[0].clientX;
         }
-        
         var _offset = clientX - viewport;
 
-        // 8月31 触发彩蛋
-        const now = new Date();
-        const isAug31 = now.getMonth() === 7 && now.getDate() === 31;
+        const limit = 2; // 亮度条件限制
 
-        // HTML 元素
-        if (flagTag) {
-            flagTag.textContent = isAug31;
-            flagTag.setAttribute('data-active', isAug31); 
-        }
-
-        if (isAug31) {
-            const limit=2; 
-            const maxRange = limit*width;
-        } else {
-            const limit = 2;
-            const maxRange = limit * windth;
-        }
-        
         if (_offset < 0) {
             _offset = 0;
-        } else if (_offset > maxRange) {
-            _offset = maxRange;
         }
-        
+        else if (_offset > limit * width) {
+            _offset = limit * width;
+        }
         slider.style.marginLeft = _offset + 'px';
         after.style.left = _offset + 'px';
         after.style.width = width - _offset + 'px';
-
-        const currentRatio = _offset / width;
-        if (currentRatio > 0.3 && currentRatio < limit) {
-            page.style.filter = `brightness(${currentRatio})`;
-        } else if (currentRatio < limit) {
+        if (_offset / width > 0.3 && _offset / width < limit) {
+            page.style.filter = `brightness(${_offset / width})`;
+        }
+        else if (_offset / width < limit) {
             page.style.filter = 'brightness(0.3)';
         } else {
             page.style.filter = `brightness(${limit})`;
         }
     }
-
     function up() {
         container.classList.remove('active');
         page.onmouseup = null;
